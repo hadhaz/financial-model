@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Target Calculator</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function addExpenseField() {
+            let container = document.getElementById("expenses-container");
+            let div = document.createElement("div");
+            div.className = "expense-input";
+            div.innerHTML = `
+                <input type="number" class="expense-year" placeholder="Year (e.g. 5)" required>
+                <input type="number" class="expense-value" placeholder="Expense in IDR" required>
+            `;
+            container.appendChild(div);
+        }
+
+        function collectExpenses() {
+            let expenseYears = document.getElementsByClassName("expense-year");
+            let expenseValues = document.getElementsByClassName("expense-value");
+            let expenses = {};
+
+            for (let i = 0; i < expenseYears.length; i++) {
+                let year = expenseYears[i].value;
+                let value = expenseValues[i].value;
+                if (year && value) {
+                    expenses[year] = value;
+                }
+            }
+            return expenses;
+        }
+
+        function calculateSavings() {
+            let data = {
+                monthly_salary: document.getElementById("monthly_salary").value,
+                salary_growth_rate: document.getElementById("salary_growth_rate").value,
+                investment_return: document.getElementById("investment_return").value,
+                inflation_rate: document.getElementById("inflation_rate").value,
+                target_savings: document.getElementById("target_savings").value,
+                saving_percentage: document.getElementById("saving_percentage").value,
+                custom_expenses: collectExpenses()
+            };
+
+            fetch('/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = data.result;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Financial Target Calculator</h2>
+        <label>Monthly Salary (IDR):</label>
+        <input type="number" id="monthly_salary" value="8000000"><br>
+
+        <label>Salary Growth Rate (% per year):</label>
+        <input type="number" id="salary_growth_rate" value="10"><br>
+
+        <label>Investment Return Rate (% per year):</label>
+        <input type="number" id="investment_return" value="10"><br>
+
+        <label>Inflation Rate (% per year):</label>
+        <input type="number" id="inflation_rate" value="3"><br>
+
+        <label>Target Savings (IDR):</label>
+        <input type="number" id="target_savings" value="1000000000"><br>
+
+        <label>Saving Percentage (% of salary):</label>
+        <input type="number" id="saving_percentage" value="60"><br>
+
+        <h3>Custom Monthly Expenses by Year Range</h3>
+        <div id="expenses-container"></div>
+        <button onclick="addExpenseField()">Add Yearly Expense</button>
+
+        <button onclick="calculateSavings()">Calculate</button>
+
+        <div class="result-box">
+            <h3>Result:</h3>
+            <p id="result"></p>
+        </div>
+    </div>
+</body>
+</html>
